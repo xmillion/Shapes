@@ -1,4 +1,10 @@
 #################
+## libGDX specific
+#################
+GwtDefinition.gwt.xml
+GwtLauncher.class
+
+#################
 ## Eclipse
 #################
 
