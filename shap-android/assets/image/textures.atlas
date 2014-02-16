@@ -1,0 +1,316 @@
+
+textures.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+tiles/factory
+  rotate: false
+  xy: 1, 35
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+tiles/grass
+  rotate: false
+  xy: 1, 1
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/house
+  rotate: false
+  xy: 67, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/path
+  rotate: false
+  xy: 101, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-e
+  rotate: false
+  xy: 135, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-h
+  rotate: false
+  xy: 169, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-n
+  rotate: false
+  xy: 203, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-ne
+  rotate: false
+  xy: 237, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-nw
+  rotate: false
+  xy: 271, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-s
+  rotate: false
+  xy: 305, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-se
+  rotate: false
+  xy: 339, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-sw
+  rotate: false
+  xy: 373, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-te
+  rotate: false
+  xy: 407, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-tn
+  rotate: false
+  xy: 441, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-ts
+  rotate: false
+  xy: 475, 67
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-tw
+  rotate: false
+  xy: 35, 1
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-v
+  rotate: false
+  xy: 69, 33
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-w
+  rotate: false
+  xy: 103, 33
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/road-x
+  rotate: false
+  xy: 137, 33
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/rock
+  rotate: false
+  xy: 171, 33
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/sand
+  rotate: false
+  xy: 205, 33
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/tile
+  rotate: false
+  xy: 239, 33
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+tiles/water
+  rotate: false
+  xy: 273, 33
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+
+textures2.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+ui/anchor
+  rotate: false
+  xy: 1, 1
+  size: 24, 24
+  orig: 24, 24
+  offset: 0, 0
+  index: -1
+ui/arrow
+  rotate: false
+  xy: 27, 10
+  size: 8, 15
+  orig: 8, 15
+  offset: 0, 0
+  index: -1
+ui/fasteroff
+  rotate: false
+  xy: 241, 27
+  size: 31, 32
+  orig: 31, 32
+  offset: 0, 0
+  index: -1
+ui/fasteron
+  rotate: false
+  xy: 274, 27
+  size: 31, 32
+  orig: 31, 32
+  offset: 0, 0
+  index: -1
+ui/fastestoff
+  rotate: false
+  xy: 117, 27
+  size: 43, 32
+  orig: 43, 32
+  offset: 0, 0
+  index: -1
+ui/fasteston
+  rotate: false
+  xy: 162, 27
+  size: 43, 32
+  orig: 43, 32
+  offset: 0, 0
+  index: -1
+ui/line
+  rotate: false
+  xy: 395, 55
+  size: 32, 4
+  orig: 32, 4
+  offset: 0, 0
+  index: -1
+ui/pausemenu
+  rotate: false
+  xy: 207, 27
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui/pauseoff
+  rotate: false
+  xy: 307, 27
+  size: 21, 32
+  orig: 21, 32
+  offset: 0, 0
+  index: -1
+ui/pauseon
+  rotate: false
+  xy: 330, 27
+  size: 21, 32
+  orig: 21, 32
+  offset: 0, 0
+  index: -1
+ui/playoff
+  rotate: false
+  xy: 353, 27
+  size: 19, 32
+  orig: 19, 32
+  offset: 0, 0
+  index: -1
+ui/playon
+  rotate: false
+  xy: 374, 27
+  size: 19, 32
+  orig: 19, 32
+  offset: 0, 0
+  index: -1
+ui/timemenu
+  rotate: false
+  xy: 1, 27
+  size: 114, 32
+  orig: 114, 32
+  offset: 0, 0
+  index: -1
+
+textures3.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+ui/build/buildmenu
+  rotate: false
+  xy: 1, 35
+  size: 88, 216
+  orig: 88, 216
+  offset: 0, 0
+  index: -1
+ui/build/erase
+  rotate: false
+  xy: 1, 1
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui/build/factory
+  rotate: false
+  xy: 91, 219
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui/build/house
+  rotate: false
+  xy: 35, 1
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui/build/query
+  rotate: false
+  xy: 91, 185
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui/build/road
+  rotate: false
+  xy: 91, 151
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui/build/select
+  rotate: false
+  xy: 91, 117
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
