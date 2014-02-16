@@ -1,6 +1,5 @@
 package com.left.shap.screens;
 
-import static com.badlogic.gdx.scenes.scene2d.actions.Actions.delay;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.fadeIn;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.fadeOut;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.run;
@@ -19,7 +18,6 @@ import com.left.shap.ShapeGame.Screens;
 import com.left.shap.services.MusicManager.GridMusic;
 import com.left.shap.services.SoundManager.GridSound;
 import com.left.shap.util.DefaultButtonListener;
-import com.left.shap.screens.AbstractMenuScreen;
 
 /**
  * Main Menu.
