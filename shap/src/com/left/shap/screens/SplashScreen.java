@@ -44,7 +44,7 @@ public class SplashScreen extends AbstractMenuScreen {
 		int centerX = Gdx.graphics.getWidth() / 2;
 		int centerY = Gdx.graphics.getHeight() / 2;
 
-		texture = new Texture(Res.UI + "splash.png");
+		texture = new Texture(Res.SPLASH);
 		logo = new Image(
 				new TextureRegionDrawable(new TextureRegion(texture, 0, 31, 116, 22)),
 				Scaling.none, Align.center);
