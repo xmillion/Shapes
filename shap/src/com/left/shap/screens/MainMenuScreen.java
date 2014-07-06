@@ -50,12 +50,12 @@ public class MainMenuScreen extends AbstractMenuScreen {
 				})));
 			}
 		});
-		TextButton optionsButton = new TextButton("Options", skin);
-		optionsButton.addListener(new DefaultButtonListener() {
+		TextButton scoreButton = new TextButton("Score", skin);
+		scoreButton.addListener(new DefaultButtonListener() {
 			@Override
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
 				game.getDeejay().play(GridSound.CLICK);
-				game.setNextScreen(Screens.OPTIONS);
+				game.setNextScreen(Screens.SCORE);
 			}
 		});
 		TextButton exitButton = new TextButton("Exit", skin);
@@ -77,7 +77,7 @@ public class MainMenuScreen extends AbstractMenuScreen {
 		table.row();
 		table.add(startButton).size(BUTTON_WIDTH, BUTTON_HEIGHT).uniform().fill().spaceBottom(SPACING);
 		table.row();
-		table.add(optionsButton).size(BUTTON_WIDTH, BUTTON_HEIGHT).uniform().fill().spaceBottom(SPACING);
+		table.add(scoreButton).size(BUTTON_WIDTH, BUTTON_HEIGHT).uniform().fill().spaceBottom(SPACING);
 		table.row();
 		table.add(exitButton).size(BUTTON_WIDTH, BUTTON_HEIGHT).uniform().fill().spaceBottom(SPACING);
 		table.pack();

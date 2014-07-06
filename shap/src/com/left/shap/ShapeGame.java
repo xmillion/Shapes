@@ -12,23 +12,16 @@ public class ShapeGame extends Game implements ApplicationListener {
 	public static final boolean DEVMODE = true;
 
 	private Screens nextScreen;
-	private int nextScreenState;
 	private PreferenceManager preferenceManager;
-	//private GridSerializer gridSerializer;
 	private MusicManager musicManager;
 	private SoundManager soundManager;
 
 	public static enum Screens {
-		SPLASH, MAINMENU, OPTIONS, DRAW;
+		SPLASH, MAINMENU, SCORE, DRAW;
 	}
 	
 	public void setNextScreen(Screens s) {
 		nextScreen = s;
-	}
-	
-	public void setNextScreen(Screens s, int state) {
-		nextScreen = s;
-		nextScreenState = state;
 	}
 	
 	/**
@@ -43,8 +36,8 @@ public class ShapeGame extends Game implements ApplicationListener {
 		case MAINMENU:
 			screen = new MainMenuScreen(this);
 			break;
-		case OPTIONS:
-			screen = new OptionsScreen(this);
+		case SCORE:
+			screen = new ScoreScreen(this);
 			break;
 		case DRAW:
 			screen = new DrawScreen(this);
@@ -60,10 +53,6 @@ public class ShapeGame extends Game implements ApplicationListener {
 	public PreferenceManager getPrefs() {
 		return preferenceManager;
 	}
-	
-	/*public GridSerializer getSaver() {
-		return gridSerializer;
-	}*/
 
 	public MusicManager getJukebox() {
 		return musicManager;
@@ -90,7 +79,6 @@ public class ShapeGame extends Game implements ApplicationListener {
 		soundManager.setVolume(preferenceManager.getSoundVolume());
 
 		nextScreen = null;
-		nextScreenState = -1;
 		setScreen(Screens.SPLASH);
 	}
 
@@ -101,7 +89,6 @@ public class ShapeGame extends Game implements ApplicationListener {
 		if(nextScreen != null) {
 			setScreen(nextScreen);
 			nextScreen = null;
-			nextScreenState = -1;
 		}
 	}
 

@@ -28,10 +28,6 @@ public abstract class AbstractScreen implements Screen {
 		this.game = game;
 	}
 
-	protected boolean isGameScreen() {
-		return false;
-	}
-
 	protected String getName() {
 		// GWT does not have support for Class.getSimpleName()
 		return getClass().getSimpleName();

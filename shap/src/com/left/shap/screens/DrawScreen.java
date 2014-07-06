@@ -87,11 +87,6 @@ public class DrawScreen extends AbstractScreen {
 	}
 
 	@Override
-	public boolean isGameScreen() {
-		return true;
-	}
-
-	@Override
 	public void show() {
 		super.show();
 		Gdx.input.setInputProcessor(this.stage);

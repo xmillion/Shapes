@@ -1,6 +1,8 @@
 package com.left.shap.util;
 
 public class Utils {
+	public static java.util.Random random = new java.util.Random();
+	
 	public static String coords(int x, int y) {
 		return "(" + x + ", " + y + ")";
 	}

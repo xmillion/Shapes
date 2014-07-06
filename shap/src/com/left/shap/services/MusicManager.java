@@ -16,7 +16,7 @@ public class MusicManager {
 			this.fileName = fileName;
 		}
 		public String getFileName() {
-			return Res.MUSIC + fileName;
+			return Res.SOUND + fileName;
 		}
 	}
 	

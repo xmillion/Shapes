@@ -1,22 +1,23 @@
 package com.left.shap.screens;
 
+import static com.badlogic.gdx.math.Interpolation.pow2In;
+import static com.badlogic.gdx.scenes.scene2d.actions.Actions.delay;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.forever;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.moveBy;
-import static com.badlogic.gdx.scenes.scene2d.actions.Actions.moveTo;
-import static com.badlogic.gdx.scenes.scene2d.actions.Actions.repeat;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.sequence;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Scaling;
 import com.left.shap.ShapeGame;
+import com.left.shap.model.ResetPositionAction;
 import com.left.shap.util.Res;
+import com.left.shap.util.Utils;
 
 /**
  * Slightly more specific Screen template for Menus.
@@ -24,23 +25,20 @@ import com.left.shap.util.Res;
  */
 public abstract class AbstractMenuScreen extends AbstractScreen {
 
-	// Constants depend on background image
-	protected final int WIDTH = 512, HEIGHT = 128;
-	protected final float SPEED = 0.25f;
-	protected final int REPEAT = (int) (WIDTH / SPEED) - 1;
-	protected final int COPIES = Gdx.graphics.getWidth() / WIDTH + 3;
-
 	// Standard UI sizes
 	protected static final float BUTTON_WIDTH = 150f;
 	protected static final float BUTTON_HEIGHT = 30f;
 	protected static final float SPACING = 10f;
-	
-	private Texture backgroundTexture;
-	private Image[] backgroundFrames;
-	private static int backgroundOffset = 0;
 
 	protected final Stage stage;
 	private Table table;
+	
+	// Falling Shaps
+	private Texture[] shapAssets;
+	private Image[] fallingShaps;
+	private static final float SHAP_LENGTH = 64;
+	private static final float MAX_DURATION = Gdx.graphics.getHeight() / SHAP_LENGTH / 2;
+	private static final float MAX_DELAY = 9;
 
 	public AbstractMenuScreen(ShapeGame game) {
 		super(game);
@@ -62,19 +60,32 @@ public abstract class AbstractMenuScreen extends AbstractScreen {
 	protected void loadBackground() {
 		if(!hasDynamicBackground())
 			return;
-
-		int initialPosition = (int) (backgroundOffset * SPEED);
-		backgroundTexture = new Texture(Res.UI + "background.png");
-		backgroundFrames = new Image[COPIES];
-		for(int i = 0; i < COPIES; i++) {
-			backgroundFrames[i] = new Image(new TextureRegionDrawable(new TextureRegion(
-					backgroundTexture, 0, 0, WIDTH, HEIGHT)));
-			backgroundFrames[i].setScaling(Scaling.none);
-			backgroundFrames[i].setBounds(i * WIDTH - initialPosition, 0, WIDTH, HEIGHT);
-			backgroundFrames[i].addAction(sequence(forever(sequence(
-					repeat(REPEAT, moveBy(-SPEED, 0)), moveTo(i * WIDTH - initialPosition, 0)))));
-			stage.addActor(backgroundFrames[i]);
+		
+		// TODO rewrite this class to support the falling shaps
+		// Set shap animations
+		// Run animations
+		shapAssets = new Texture[Res.SHAPS];
+		for(int i = 0; i < Res.SHAPS; i++) {
+			shapAssets[i] = new Texture(Res.SHAPASSETS + "shap" + i + ".png");
 		}
+		
+		int copies = (int) ((Gdx.graphics.getWidth() / SHAP_LENGTH) * 6);
+		fallingShaps = new Image[copies];
+		for(int i = 0; i < copies; i++) {
+			fallingShaps[i] = new Image(shapAssets[i % shapAssets.length]);
+			fallingShaps[i].setScaling(Scaling.none);
+			fallingShaps[i].setBounds(0, -SHAP_LENGTH, SHAP_LENGTH, SHAP_LENGTH);
+			fallingShaps[i].addAction(fallingShapAction());
+			stage.addActor(fallingShaps[i]);
+		}
+	}
+	
+	private static Action fallingShapAction() {
+		final float height = Gdx.graphics.getHeight();
+		float duration = MAX_DURATION;
+		float delay = Utils.random.nextFloat() * MAX_DELAY;
+		
+		return sequence(delay(delay), forever(sequence(ResetPositionAction.resetAction(height), moveBy(0, -height - 128, duration, pow2In))));
 	}
 
 	protected Table getTable() {
@@ -98,11 +109,6 @@ public abstract class AbstractMenuScreen extends AbstractScreen {
 
 	@Override
 	public void render(float delta) {
-		backgroundOffset++;
-		if(backgroundOffset > REPEAT) {
-			backgroundOffset = 0;
-		}
-
 		// Update
 		stage.act(delta);
 		// Render
@@ -127,8 +133,12 @@ public abstract class AbstractMenuScreen extends AbstractScreen {
 	public void dispose() {
 		super.dispose();
 
-		if(backgroundTexture != null) {
-			backgroundTexture.dispose();
+		if(shapAssets != null) {
+			for(Texture t: shapAssets) {
+				if (t != null) {
+					t.dispose();
+				}
+			}
 		}
 	}
 }
