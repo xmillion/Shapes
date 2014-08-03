@@ -65,13 +65,6 @@ public abstract class AbstractScreen implements Screen {
 		return skin;
 	}
 
-	public TextureAtlas getAtlas() {
-		if(atlas == null) {
-			atlas = new TextureAtlas(Gdx.files.internal(Res.IMAGE + "textures.atlas"));
-		}
-		return atlas;
-	}
-
 	// Screen implementation
 
 	@Override

@@ -39,6 +39,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen {
 	private static final float SHAP_LENGTH = 64;
 	private static final float MAX_DURATION = Gdx.graphics.getHeight() / SHAP_LENGTH / 2;
 	private static final float MAX_DELAY = 9;
+	private static final float INIT_SPEED_CAP = 2;
 
 	public AbstractMenuScreen(ShapeGame game) {
 		super(game);
@@ -82,7 +83,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen {
 	
 	private static Action fallingShapAction() {
 		final float height = Gdx.graphics.getHeight();
-		float duration = MAX_DURATION;
+		float duration = MAX_DURATION - (Utils.random.nextFloat() * INIT_SPEED_CAP);
 		float delay = Utils.random.nextFloat() * MAX_DELAY;
 		
 		return sequence(delay(delay), forever(sequence(ResetPositionAction.resetAction(height), moveBy(0, -height - 128, duration, pow2In))));
