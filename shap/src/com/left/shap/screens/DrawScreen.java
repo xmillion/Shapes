@@ -38,7 +38,7 @@ public class DrawScreen extends AbstractScreen {
 	private TextButton menuButton;
 
 	// Player circle
-	private final float RECORD_DELAY = 0.05f; // seconds
+	private final float RECORD_DELAY = 0.01f; // seconds
 	private float recordDelta = RECORD_DELAY;
 	private boolean isDrawing = false;
 	private List<Vector2> drawn;
@@ -76,7 +76,7 @@ public class DrawScreen extends AbstractScreen {
 			@Override
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
 				// TODO goto menu
-				DrawScreen.this.game.setNextScreen(Screens.MAINMENU);
+				DrawScreen.this.game.setNextScreen(Screens.MENU);
 			}
 		});
 		stage.addActor(scoreLabel);

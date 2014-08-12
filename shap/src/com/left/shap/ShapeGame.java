@@ -17,7 +17,7 @@ public class ShapeGame extends Game implements ApplicationListener {
 	private SoundManager soundManager;
 
 	public static enum Screens {
-		SPLASH, MAINMENU, SCORE, DRAW;
+		SPLASH, MENU, DRAW;
 	}
 	
 	public void setNextScreen(Screens s) {
@@ -33,11 +33,8 @@ public class ShapeGame extends Game implements ApplicationListener {
 		case SPLASH:
 			screen = new SplashScreen(this);
 			break;
-		case MAINMENU:
+		case MENU:
 			screen = new MainMenuScreen(this);
-			break;
-		case SCORE:
-			screen = new ScoreScreen(this);
 			break;
 		case DRAW:
 			screen = new DrawScreen(this);
