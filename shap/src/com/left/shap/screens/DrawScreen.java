@@ -73,7 +73,7 @@ public class DrawScreen extends AbstractScreen {
 		scoreButton.addListener(new DefaultButtonListener() {
 			@Override
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
-				// TODO share current score
+				DrawScreen.this.game.navigateToMainMenu(score);
 			}
 		});
 
@@ -82,8 +82,7 @@ public class DrawScreen extends AbstractScreen {
 		menuButton.addListener(new DefaultButtonListener() {
 			@Override
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
-				// TODO goto menu
-				DrawScreen.this.game.setNextScreen(Screens.MENU);
+				DrawScreen.this.game.navigateTo(Screens.MENU);
 			}
 		});
 		stage.addActor(scoreLabel);
@@ -104,7 +103,7 @@ public class DrawScreen extends AbstractScreen {
 		// Clear screen
 		Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-		SpriteBatch batch = getBatch();
+		/* SpriteBatch batch = getBatch(); */
 
 		// Check for input
 		if(Gdx.input.isButtonPressed(Buttons.LEFT) || Gdx.input.isTouched(0)) {

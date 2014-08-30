@@ -64,7 +64,7 @@ public class SplashScreen extends AbstractScreen {
 		stage.getRoot().addAction(sequence(delay(0.25f), fadeIn(0.25f), delay(1.0f), fadeOut(0.25f),
 				run(new Runnable() {
 					public void run() {
-						game.setNextScreen(Screens.MENU);
+						game.navigateTo(Screens.MENU);
 					}
 				})));
 		

@@ -12,6 +12,7 @@ import static com.left.shap.util.Log.log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL10;
@@ -36,9 +37,7 @@ import com.left.shap.util.Res;
 import com.left.shap.util.Utils;
 
 /**
- * Main Menu.
- * TableLayout Editor (Java Web-Start):
- * http://table-layout.googlecode.com/svn/wiki/jws/editor.jnlp
+ * Main Menu. TableLayout Editor (Java Web-Start): http://table-layout.googlecode.com/svn/wiki/jws/editor.jnlp
  */
 public class MainMenuScreen extends AbstractScreen {
 
@@ -68,12 +67,14 @@ public class MainMenuScreen extends AbstractScreen {
 	private static final float INIT_SPEED_CAP = 2;
 
 	public MainMenuScreen(ShapeGame game) {
-		this(game, MenuState.MAINMENU);
-	}
-
-	public MainMenuScreen(ShapeGame game, MenuState state) {
 		super(game);
-		this.currentState = state;
+
+		// Load background
+		shapAssets = new Texture[Res.SHAPS];
+		for(int i = 0; i < Res.SHAPS; i++) {
+			shapAssets[i] = new Texture(Res.SHAPASSETS + "shap" + i + ".png");
+		}
+		fallingShaps = new ArrayList<Image>();
 
 		// Load UI
 		buttonTexture = new Texture(Res.BUTTONS);
@@ -89,12 +90,14 @@ public class MainMenuScreen extends AbstractScreen {
 		stage.addActor(mainMenuTable);
 		stage.addActor(scoreMenuTable);
 
-		// Load background
-		shapAssets = new Texture[Res.SHAPS];
-		for(int i = 0; i < Res.SHAPS; i++) {
-			shapAssets[i] = new Texture(Res.SHAPASSETS + "shap" + i + ".png");
+		// determine state
+		Map<String, Object> globals = game.getGlobals();
+		if(globals.containsKey("newscore")) {
+			double score = (Double) globals.remove("newscore");
+			setState(MenuState.DRAWSCORES);
+		} else {
+			setState(MenuState.MAINMENU);
 		}
-		fallingShaps = new ArrayList<Image>();
 	}
 
 	private static Action fallingShapAction() {
@@ -110,6 +113,7 @@ public class MainMenuScreen extends AbstractScreen {
 	}
 
 	public void setState(MenuState state) {
+		this.currentState = state;
 		switch(state) {
 		case MAINMENU:
 			mainMenuTable.setVisible(true);
@@ -125,7 +129,7 @@ public class MainMenuScreen extends AbstractScreen {
 			// TODO Add a submit row to scores
 			mainMenuTable.setVisible(false);
 			scoreMenuTable.setVisible(true);
-			scoreBackButton.setVisible(false);
+			scoreBackButton.setVisible(true);
 			scoreAgainButton.setVisible(true);
 			break;
 		}
@@ -153,7 +157,7 @@ public class MainMenuScreen extends AbstractScreen {
 				game.getDeejay().play(GridSound.CLICK);
 				stage.getRoot().addAction(sequence(fadeOut(0.15f), run(new Runnable() {
 					public void run() {
-						game.setNextScreen(Screens.DRAW);
+						game.navigateTo(Screens.DRAW);
 					}
 				})));
 			}
@@ -186,6 +190,11 @@ public class MainMenuScreen extends AbstractScreen {
 
 	private void loadScoreMenu() {
 		Image scoreTitle = new Image(new Texture(Res.SCORE_LABEL));
+
+		// TODO replace with the score list
+		Image scoreList = new Image(new Texture(Res.TITLE_PICTURE));
+		double[] scores = game.getPrefs().getScores();
+
 		scoreBackButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
 				buttonTexture, 0, 2 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT)));
 		scoreBackButton.addListener(new DefaultButtonListener() {
@@ -204,7 +213,7 @@ public class MainMenuScreen extends AbstractScreen {
 				game.getDeejay().play(GridSound.CLICK);
 				stage.getRoot().addAction(sequence(fadeOut(0.15f), run(new Runnable() {
 					public void run() {
-						game.setNextScreen(Screens.DRAW);
+						game.navigateTo(Screens.DRAW);
 					}
 				})));
 			}
@@ -220,8 +229,9 @@ public class MainMenuScreen extends AbstractScreen {
 			}
 		});
 
-		scoreMenuTable.add(scoreTitle).colspan(3).pad(SPACING).expand();
+		scoreMenuTable.add(scoreTitle).colspan(3).pad(SPACING);
 		scoreMenuTable.row();
+		scoreMenuTable.add(scoreList).expand().uniform().colspan(3);
 		scoreMenuTable.row();
 		scoreMenuTable.add(scoreBackButton).align(Align.left).pad(0, SPACING, SPACING, 0);
 		scoreMenuTable.add(scoreAgainButton).pad(0, 0, SPACING, 0);
