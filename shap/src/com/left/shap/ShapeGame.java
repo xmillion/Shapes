@@ -12,7 +12,7 @@ import com.left.shap.screens.*;
 import com.left.shap.services.*;
 
 public class ShapeGame extends Game implements ApplicationListener {
-	public static final boolean DEVMODE = true;
+	public static final boolean DEVMODE = false;
 
 	private Screens nextScreen;
 	private PreferenceManager preferenceManager;

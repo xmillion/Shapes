@@ -28,7 +28,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.left.shap.ShapeGame;
 import com.left.shap.ShapeGame.Screens;
-import com.left.shap.services.MusicManager.GridMusic;
 import com.left.shap.services.SoundManager.GridSound;
 import com.left.shap.util.DefaultButtonListener;
 import com.left.shap.util.Res;
@@ -39,8 +38,8 @@ public class DrawScreen extends AbstractScreen {
 	private ShapeRenderer sr;
 
 	// UI elements
-	protected static final float BUTTON_WIDTH = 150f;
-	protected static final float BUTTON_HEIGHT = 30f;
+	protected static final int BUTTON_WIDTH = 128;
+	protected static final int BUTTON_HEIGHT = 32;
 	protected static final float SPACING = 10f;
 	private Texture buttonTexture;
 	private final Stage stage;
@@ -76,8 +75,8 @@ public class DrawScreen extends AbstractScreen {
 
 	public DrawScreen(ShapeGame game) {
 		super(game);
-		this.sr = new ShapeRenderer();
 		this.buttonTexture = new Texture(Res.BUTTONS);
+		this.sr = new ShapeRenderer();
 		this.stage = new Stage();
 		this.table = new Table();
 		if(ShapeGame.DEVMODE) {
@@ -85,18 +84,18 @@ public class DrawScreen extends AbstractScreen {
 		}
 		initTable();
 		stage.addActor(table);
-		
+
 		drawn = new ArrayList<Vector2>(1000); // TODO get expected value of # points
 	}
-	
+
 	private void initTable() {
 		final Skin skin = super.getSkin();
-		
+
 		scoreLabel = new Label("Score: 0", skin);
 		helpLabel = new Label("Try and draw a perfect circle!", skin);
 		backButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
 				buttonTexture, 0, 2 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT)));
-		backButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
+		//backButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
 		backButton.addListener(new DefaultButtonListener() {
 			@Override
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
@@ -106,17 +105,18 @@ public class DrawScreen extends AbstractScreen {
 		});
 		clearButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
 				buttonTexture, 0, 5 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT)));
-		clearButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
+		//clearButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
 		clearButton.addListener(new DefaultButtonListener() {
 			@Override
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
 				game.getDeejay().play(GridSound.CLICK);
+				l("clearButton clicked");
 				// TODO clear screen
 			}
 		});
 		submitButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
 				buttonTexture, 0, 6 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT)));
-		submitButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
+		//submitButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
 		submitButton.addListener(new DefaultButtonListener() {
 			@Override
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
@@ -125,97 +125,14 @@ public class DrawScreen extends AbstractScreen {
 				game.navigateToMainMenu(score);
 			}
 		});
-		
+
 		table.add(scoreLabel).align(Align.left).pad(SPACING);
-		table.add(helpLabel).align(Align.right).colspan(2).pad(SPACING);
+		table.add(helpLabel).align(Align.right).pad(SPACING).colspan(2);
 		table.row();
 		table.add(backButton).align(Align.left).pad(0, SPACING, SPACING, 0);
-		table.add(clearButton).pad(0, 0, SPACING, 0);
+		table.add(clearButton).pad(0, 0, SPACING, 0).expandX();
 		table.add(submitButton).align(Align.right).pad(0, 0, SPACING, SPACING);
 		table.pack();
-	}
-
-	@Override
-	public void show() {
-		super.show();
-		Gdx.input.setInputProcessor(this.stage);
-		stage.getRoot().getColor().a = 0f;
-		stage.getRoot().addAction(fadeIn(0.25f));
-	}
-
-	@Override
-	public void render(float delta) {
-		// Clear screen
-		Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
-		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-		SpriteBatch batch = super.getBatch();
-		BitmapFont font = super.getFont();
-		font.setColor(Color.WHITE);
-		//TODO font.draw(batch, "Hello World", 200, 200);
-
-		// Check for input
-		if(Gdx.input.isButtonPressed(Buttons.LEFT) || Gdx.input.isTouched(0)) {
-			// Player is drawing
-			if(!isDrawing) {
-				isDrawing = true;
-				isCalculated = false;
-				drawn.clear();
-			}
-
-			// Sampling instead of grabbing every frame
-			recordDelta += delta;
-			if(isDrawing && recordDelta > RECORD_DELAY) {
-
-				Vector2 next = new Vector2(Gdx.input.getX(), Gdx.input.getY());
-				if(drawn.size() == 0 || !next.epsilonEquals(drawn.get(drawn.size() - 1), 0.001f)) {
-					// avoiding too many duplicates
-					drawn.add(next);
-				}
-				recordDelta = 0f;
-			}
-		} else if(isDrawing) {
-			// Player finished drawing
-			isDrawing = false;
-
-			// Create the actual circle
-			this.actualCenter = calculateCentroid(drawn);
-			this.actualRadius = calculateRadius(drawn, actualCenter);
-			if(actualRadius >= 0) {
-				// Calculate the score
-				setScore(calculateScore(drawn, actualCenter, actualRadius, desiredRadius));
-				isCalculated = true;
-			}
-		} else if(!isCalculated) {
-			// Initial state, draw a reference circle
-			sr.setColor(desiredColor);
-			Gdx.gl10.glLineWidth(1);
-			sr.begin(ShapeType.Line);
-			sr.circle(desiredCenter.x, desiredCenter.y, (float) desiredRadius);
-			sr.end();
-		}
-
-		// draw the best fit circle
-		if(isCalculated) {
-			sr.setColor(actualColor);
-			Gdx.gl10.glLineWidth(1);
-			sr.begin(ShapeType.Line);
-			sr.circle(actualCenter.x, actualCenter.y, (float) actualRadius);
-			sr.end();
-		}
-
-		// draw the player drawn "circle"
-		sr.setColor(drawingColor);
-		Gdx.gl10.glLineWidth(3);
-		for(int i = 1; i < drawn.size(); i++) {
-			sr.begin(ShapeType.Line);
-			sr.line(drawn.get(i - 1), drawn.get(i));
-			sr.end();
-		}
-
-		Gdx.gl10.glLineWidth(1);
-		stage.act(delta);
-		//stage.draw();
-		Table.drawDebug(stage);
 	}
 
 	/**
@@ -334,23 +251,115 @@ public class DrawScreen extends AbstractScreen {
 	}
 
 	@Override
+	public void show() {
+		super.show();
+		Gdx.input.setInputProcessor(this.stage);
+		stage.getRoot().getColor().a = 0f;
+		stage.getRoot().addAction(fadeIn(0.25f));
+	}
+
+	@Override
+	public void render(float delta) {
+		// Update
+		stage.act(delta);
+		
+		// Clear screen
+		Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
+		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+		
+		/*SpriteBatch batch = super.getBatch();*/
+		BitmapFont font = super.getFont();
+		font.setColor(Color.WHITE);
+		// to use font:
+		// batch.begin();
+		// font.draw(batch, "Hello World", 200, 200);
+		// batch.end();
+
+		// Check for input
+		if(Gdx.input.isButtonPressed(Buttons.LEFT) || Gdx.input.isTouched(0)) {
+			// Player is drawing
+			if(!isDrawing) {
+				isDrawing = true;
+				isCalculated = false;
+				drawn.clear();
+			}
+
+			// Sampling instead of grabbing every frame
+			recordDelta += delta;
+			if(isDrawing && recordDelta > RECORD_DELAY) {
+
+				Vector2 next = new Vector2(Gdx.input.getX(), Gdx.input.getY());
+				if(drawn.size() == 0 || !next.epsilonEquals(drawn.get(drawn.size() - 1), 0.001f)) {
+					// avoiding too many duplicates
+					drawn.add(next);
+				}
+				recordDelta = 0f;
+			}
+		} else if(isDrawing) {
+			// Player finished drawing
+			isDrawing = false;
+
+			// Create the actual circle
+			this.actualCenter = calculateCentroid(drawn);
+			this.actualRadius = calculateRadius(drawn, actualCenter);
+			if(actualRadius >= 0) {
+				// Calculate the score
+				setScore(calculateScore(drawn, actualCenter, actualRadius, desiredRadius));
+				isCalculated = true;
+			}
+		} else if(!isCalculated) {
+			// Initial state, draw a reference circle
+			sr.setColor(desiredColor);
+			Gdx.gl10.glLineWidth(1);
+			sr.begin(ShapeType.Line);
+			sr.circle(desiredCenter.x, desiredCenter.y - (Gdx.graphics.getHeight() * 0.05f), (float) desiredRadius);
+			sr.end();
+		}
+
+		// draw the best fit circle
+		if(isCalculated) {
+			sr.setColor(actualColor);
+			Gdx.gl10.glLineWidth(1);
+			sr.begin(ShapeType.Line);
+			sr.circle(actualCenter.x, actualCenter.y, (float) actualRadius);
+			sr.end();
+		}
+
+		// draw the player drawn "circle"
+		sr.setColor(drawingColor);
+		Gdx.gl10.glLineWidth(3);
+		for(int i = 1; i < drawn.size(); i++) {
+			sr.begin(ShapeType.Line);
+			sr.line(drawn.get(i - 1), drawn.get(i));
+			sr.end();
+		}
+		Gdx.gl10.glLineWidth(1);
+
+		stage.draw();
+		Table.drawDebug(stage);
+	}
+	
+	@Override
 	public void resize(int width, int height) {
 		super.resize(width, height);
 		width *= ShapeGame.getUIScaling();
 		height *= ShapeGame.getUIScaling();
-		stage.setViewport(width, height, false);
 		
-		table.setBounds(0, 0, width, BUTTON_HEIGHT * 2 + SPACING);
+		// reorganize the UI
 		table.setPosition(0, 0);
+		table.setWidth(width);
+
 		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		camera.setToOrtho(true, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		camera.update();
 		sr.setProjectionMatrix(camera.combined);
 
 		// Calculate desired circle
-		this.desiredCenter = new Vector2(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
-		this.desiredRadius = Utils.min(Gdx.graphics.getWidth() / 2 * 0.8f,
-				Gdx.graphics.getHeight() / 2 * 0.8f);
+		this.desiredCenter = new Vector2(width / 2, height / 2);
+		this.desiredRadius = Utils.min(width / 2 * 0.8f, height / 2 * 0.8f);
+		
+		// Reset stage
+		stage.setViewport(width, height, false);
 	}
 
 	@Override

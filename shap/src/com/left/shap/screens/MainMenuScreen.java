@@ -8,7 +8,7 @@ import static com.badlogic.gdx.scenes.scene2d.actions.Actions.forever;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.moveBy;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.run;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.sequence;
-import static com.left.shap.util.Log.log;
+import static com.left.shap.util.Log.l;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -167,7 +167,7 @@ public class MainMenuScreen extends AbstractScreen {
 		exitButton.addListener(new DefaultButtonListener() {
 			@Override
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
-				log("Goodbye");
+				l("Goodbye");
 				game.getDeejay().play(GridSound.CLICK);
 				stage.getRoot().addAction(sequence(fadeOut(0.1f), run(new Runnable() {
 					public void run() {
@@ -270,15 +270,7 @@ public class MainMenuScreen extends AbstractScreen {
 		width *= ShapeGame.getUIScaling();
 		height *= ShapeGame.getUIScaling();
 		mainMenuTable.setBounds(0, 0, width, height);
-		mainMenuTable.setPosition((width - mainMenuTable.getWidth()) / 2,
-				(height - mainMenuTable.getHeight()) / 2);
 		scoreMenuTable.setBounds(0, 0, width, height);
-		scoreMenuTable.setPosition((width - scoreMenuTable.getWidth()) / 2,
-				(height - scoreMenuTable.getHeight()) / 2);
-		log("Resize mainMenuTable "
-				+ Utils.pCoords(mainMenuTable.getWidth(), mainMenuTable.getHeight()));
-		log("Resize scoreMenuTable "
-				+ Utils.pCoords(scoreMenuTable.getWidth(), scoreMenuTable.getHeight()));
 
 		int copies = (int) ((Gdx.graphics.getWidth() / SHAP_LENGTH) * 6);
 		if(Math.abs(copies - fallingShaps.size()) > 8) {
