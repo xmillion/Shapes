@@ -2,6 +2,9 @@ package com.left.shap;
 
 import static com.left.shap.util.Log.log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -15,13 +18,27 @@ public class ShapeGame extends Game implements ApplicationListener {
 	private PreferenceManager preferenceManager;
 	private MusicManager musicManager;
 	private SoundManager soundManager;
+	private Map<String, Object> globals;
 
 	public static enum Screens {
 		SPLASH, MENU, DRAW;
 	}
 	
-	public void setNextScreen(Screens s) {
+	/**
+	 * Navigate to the given screen.
+	 * @param s
+	 */
+	public void navigateTo(Screens s) {
 		nextScreen = s;
+	}
+	
+	/**
+	 * Navigate to the main menu to add a new high score.
+	 * @param score new score entry
+	 */
+	public void navigateToMainMenu(double score) {
+		nextScreen = Screens.MENU;
+		globals.put("newscore", score);
 	}
 	
 	/**
@@ -52,29 +69,32 @@ public class ShapeGame extends Game implements ApplicationListener {
 	}
 
 	public MusicManager getJukebox() {
+		if (musicManager == null) {
+			musicManager = new MusicManager();
+			musicManager.setEnabled(preferenceManager.isMusicOn());
+			musicManager.setVolume(preferenceManager.getMusicVolume());
+		}
 		return musicManager;
 	}
 
 	public SoundManager getDeejay() {
+		if (soundManager == null) {
+			soundManager = new SoundManager();
+			soundManager.setEnabled(preferenceManager.isSoundOn());
+			soundManager.setVolume(preferenceManager.getSoundVolume());
+		}
 		return soundManager;
+	}
+	
+	public Map<String, Object> getGlobals() {
+		return globals;
 	}
 
 	@Override
 	public void create() {
-		log("Create Game");
-		
+		globals = new HashMap<String, Object>();
 		preferenceManager = new PreferenceManager();
 		
-		//gridSerializer = new GridSerializer();
-
-		musicManager = new MusicManager();
-		musicManager.setEnabled(preferenceManager.isMusicOn());
-		musicManager.setVolume(preferenceManager.getMusicVolume());
-
-		soundManager = new SoundManager();
-		soundManager.setEnabled(preferenceManager.isSoundOn());
-		soundManager.setVolume(preferenceManager.getSoundVolume());
-
 		nextScreen = null;
 		setScreen(Screens.SPLASH);
 	}

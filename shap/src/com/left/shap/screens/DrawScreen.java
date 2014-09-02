@@ -2,7 +2,6 @@ package com.left.shap.screens;
 
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.fadeIn;
 import static com.left.shap.util.Log.l;
-import static com.left.shap.util.Log.pCoords;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,23 +47,32 @@ public class DrawScreen extends AbstractScreen {
 	private Table table;
 	private Label scoreLabel;
 	private Label helpLabel;
+	private ImageButton backButton;
+	private ImageButton clearButton;
 	private ImageButton submitButton;
 
-	// Player circle
+	// State
+	private boolean isDrawing = false;
+	private boolean isCalculated = false;
+
+	// Desired circle
+	private double desiredRadius = -1;
+	private Vector2 desiredCenter;
+	private static final Color desiredColor = Color.BLUE;
+
+	// Player drawn "circle"
 	private final float RECORD_DELAY = 0.01f; // seconds
 	private float recordDelta = RECORD_DELAY;
-	private boolean isDrawing = false;
 	private List<Vector2> drawn;
+	private Color drawingColor = new Color(1, 1, 1, 1); // TODO allow player to pick their own color
 
-	// Best fit circle
-	private boolean fitFound = false;
-	private float fitRadius;
-	private float fitX;
-	private float fitY;
+	// Actual circle
+	private double actualRadius; // negative value == error
+	private Vector2 actualCenter; // negative value == error
+	private static final Color actualColor = new Color(0.2f, 1.0f, 0.5f, 1);
 
 	// Score
-	private boolean scoreFound = false;
-	private float score;
+	private double score;
 
 	public DrawScreen(ShapeGame game) {
 		super(game);
@@ -86,17 +94,17 @@ public class DrawScreen extends AbstractScreen {
 		
 		scoreLabel = new Label("Score: 0", skin);
 		helpLabel = new Label("Try and draw a perfect circle!", skin);
-		ImageButton backButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
+		backButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
 				buttonTexture, 0, 2 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT)));
 		backButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
 		backButton.addListener(new DefaultButtonListener() {
 			@Override
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
 				game.getDeejay().play(GridSound.CLICK);
-				game.setNextScreen(Screens.MENU);
+				game.navigateTo(Screens.MENU);
 			}
 		});
-		ImageButton clearButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
+		clearButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
 				buttonTexture, 0, 5 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT)));
 		clearButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
 		clearButton.addListener(new DefaultButtonListener() {
@@ -114,7 +122,7 @@ public class DrawScreen extends AbstractScreen {
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
 				game.getDeejay().play(GridSound.CLICK);
 				// TODO pass data to score screen
-				game.setNextScreen(Screens.MENU);
+				game.navigateToMainMenu(score);
 			}
 		});
 		
@@ -150,17 +158,17 @@ public class DrawScreen extends AbstractScreen {
 			// Player is drawing
 			if(!isDrawing) {
 				isDrawing = true;
-				fitFound = false;
+				isCalculated = false;
 				drawn.clear();
 			}
 
+			// Sampling instead of grabbing every frame
 			recordDelta += delta;
 			if(isDrawing && recordDelta > RECORD_DELAY) {
 
 				Vector2 next = new Vector2(Gdx.input.getX(), Gdx.input.getY());
 				if(drawn.size() == 0 || !next.epsilonEquals(drawn.get(drawn.size() - 1), 0.001f)) {
 					// avoiding too many duplicates
-					l("Pressed " + pCoords(next));
 					drawn.add(next);
 				}
 				recordDelta = 0f;
@@ -170,38 +178,33 @@ public class DrawScreen extends AbstractScreen {
 			isDrawing = false;
 
 			// Create the actual circle
-			fitFound = calculateBestFitCircle();
-
-			// Calculate the score
-			scoreFound = calculateScore();
-			if(scoreFound) {
-				setScore(score);
+			this.actualCenter = calculateCentroid(drawn);
+			this.actualRadius = calculateRadius(drawn, actualCenter);
+			if(actualRadius >= 0) {
+				// Calculate the score
+				setScore(calculateScore(drawn, actualCenter, actualRadius, desiredRadius));
+				isCalculated = true;
 			}
-		} else {
-			// Player isn't drawing
-		}
-
-		// draw a reference circle
-		/*
-		sr.setColor(0, 0, 0.7f, 1);
-		Gdx.gl10.glLineWidth(1);
-		sr.begin(ShapeType.Line);
-		sr.circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2,
-				Utils.min(Gdx.graphics.getWidth() / 2 * 0.8f, Gdx.graphics.getHeight() / 2 * 0.8f));
-		sr.end();
-		*/
-
-		// draw the best fit circle
-		if(fitFound) {
-			sr.setColor(0.2f, 1.0f, 0.5f, 1);
+		} else if(!isCalculated) {
+			// Initial state, draw a reference circle
+			sr.setColor(desiredColor);
 			Gdx.gl10.glLineWidth(1);
 			sr.begin(ShapeType.Line);
-			sr.circle(this.fitX, this.fitY, this.fitRadius);
+			sr.circle(desiredCenter.x, desiredCenter.y, (float) desiredRadius);
 			sr.end();
 		}
 
-		// draw the player's circle
-		sr.setColor(1, 1, 1, 1);
+		// draw the best fit circle
+		if(isCalculated) {
+			sr.setColor(actualColor);
+			Gdx.gl10.glLineWidth(1);
+			sr.begin(ShapeType.Line);
+			sr.circle(actualCenter.x, actualCenter.y, (float) actualRadius);
+			sr.end();
+		}
+
+		// draw the player drawn "circle"
+		sr.setColor(drawingColor);
 		Gdx.gl10.glLineWidth(3);
 		for(int i = 1; i < drawn.size(); i++) {
 			sr.begin(ShapeType.Line);
@@ -216,86 +219,117 @@ public class DrawScreen extends AbstractScreen {
 	}
 
 	/**
-	 * Calculates best fit circle based on "Centroid of polygon" http://en.wikipedia.org/wiki/Centroid#Centroid_of_polygon
+	 * Calculates the centroid of a polygon. http://en.wikipedia.org/wiki/Centroid#Centroid_of_polygon
+	 * 
+	 * @param polygon
+	 * @return the centroid, or (-1, -1) if invalid
 	 */
-	private boolean calculateBestFitCircle() {
-		if(drawn.size() < 2) {
-			l("Fit not found");
-			return false;
+	private static Vector2 calculateCentroid(List<Vector2> polygon) {
+		if(polygon == null || polygon.size() < 2) {
+			return new Vector2(-1, -1);
 		}
 
-		// find center (centroid)
-		float area = 0f;
-		float sumX = 0f;
-		float sumY = 0f;
-		for(int i = 0; i < drawn.size() - 1; i++) {
-			float xi = drawn.get(i).x;
-			float xj = drawn.get(i + 1).x;
-			float yi = drawn.get(i).y;
-			float yj = drawn.get(i + 1).y;
-			sumX += (xi + xj) * (xi * yj - xj * yi);
-			sumY += (yi + yj) * (xi * yj - xj * yi);
-			area += (xi * yj - xj * yi);
+		double sumX = 0;
+		double sumY = 0;
+		double sumArea = 0;
+		for(int i = 0; i < polygon.size() - 1; i++) {
+			float xi = polygon.get(i).x;
+			float xj = polygon.get(i + 1).x;
+			float yi = polygon.get(i).y;
+			float yj = polygon.get(i + 1).y;
+			double area = (xi * yj) - (xj * yi);
+			sumX += (xi + xj) * area;
+			sumY += (yi + yj) * area;
+			sumArea += area;
 		}
 
+		// Close the polygon
 		{
-			// close the polygon
-			float xi = drawn.get(drawn.size() - 1).x;
-			float xj = drawn.get(0).x;
-			float yi = drawn.get(drawn.size() - 1).y;
-			float yj = drawn.get(0).y;
-			sumX += (xi + xj) * (xi * yj - xj * yi);
-			sumY += (yi + yj) * (xi * yj - xj * yi);
-			area += (xi * yj - xj * yi);
+			float xi = polygon.get(polygon.size() - 1).x;
+			float xj = polygon.get(0).x;
+			float yi = polygon.get(polygon.size() - 1).y;
+			float yj = polygon.get(0).y;
+			double area = (xi * yj) - (xj * yi);
+			sumX += (xi + xj) * area;
+			sumY += (yi + yj) * area;
+			sumArea += area;
 		}
 
-		this.fitX = sumX / (area * 3);
-		this.fitY = sumY / (area * 3);
-
-		// find radius (mean distance)
-		float mean = 0f;
-		for(int i = 0; i < drawn.size(); i++) {
-			mean += drawn.get(i).dst(fitX, fitY);
-		}
-		mean /= drawn.size();
-		this.fitRadius = mean;
-
-		if(Float.isNaN(fitX) || Float.isNaN(fitY) || Float.isNaN(fitRadius)) {
-			l("Fit not found");
-			return false;
-		} else {
-			l("Fit found: center=" + pCoords(fitX, fitY) + " radius=" + fitRadius);
-			return true;
-		}
+		float cx = (float) (sumX / (sumArea * 3));
+		float cy = (float) (sumY / (sumArea * 3));
+		return new Vector2(cx, cy);
 	}
 
-	private boolean calculateScore() {
-		if(!fitFound) {
-			return false;
+	/**
+	 * Calculates the radius of a circle given a polygon. The radius is determined by the average distance between the center and each vertex.
+	 * 
+	 * @param center Center of the circle
+	 * @param polygon
+	 * @return the radius, or -1 if invalid.
+	 */
+	private static double calculateRadius(List<Vector2> polygon, Vector2 center) {
+		if(center == null || polygon == null || polygon.size() == 0
+				|| center.epsilonEquals(new Vector2(-1, -1), 0.1f) || Float.isInfinite(center.x)
+				|| Float.isInfinite(center.y)) {
+			return -1f;
 		}
-		
-		// lower chi^2 = better score
-		float chisq = 0;
-		for(int i=0; i < drawn.size(); i++) {
-			float dst = drawn.get(i).dst(fitX, fitY);
-			chisq += dst * dst;
+
+		double sum = 0;
+		for(Vector2 vertex: polygon) {
+			double dx = center.x - vertex.x;
+			double dy = center.y - vertex.y;
+			sum += Math.sqrt((dx * dx) + (dy * dy));
 		}
-		
-		float chiScore = new Double(Math.sqrt(chisq)).floatValue() / drawn.size();
-		
-		// larger radius = better score
-		float radScore = Utils.min(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) / fitRadius;
-		
-		// lower score = better score
-		score = chiScore * radScore;
-		return true;
+		return sum / polygon.size();
 	}
-	
-	public void setScore(float score) {
-		this.scoreLabel.setText("Score: " + score);
+
+	/**
+	 * Calculates the score based on: Variance of each point to mean radius Area of the circle (delta from desired area, which is proportional to
+	 * device size) Time (not implemented yet)
+	 * 
+	 * @param center Vector2 with positive values
+	 * @param radius radius with positive values
+	 * @param polygon non-null list of points to calculate score with
+	 * @return Score. High score is good score.
+	 */
+	private static double calculateScore(List<Vector2> polygon, Vector2 center, double radius,
+			double desiredRadius) {
+		// Most of the score is based on chi^2
+		double chisq = 0;
+		for(Vector2 vertex: polygon) {
+			double distance = vertex.dst(center);
+			chisq += (distance - radius) * (distance - radius);
+		}
+
+		// (chisq / #vertices) to normalize
+		// (radius / chisq) to invert values
+		// TODO probably need a way to remove relation between radius and chisq, and use ratios instead.
+		double varScore = radius * polygon.size() / chisq;
+
+		// Part of the score is based on ratio of radius to desired radius
+		double radiusRatio = radius / desiredRadius;
+		// Logistic function, returns a double [0,1)
+		double radiusScore = 1 / (1 + Math.exp(5 - (8 * radiusRatio)));
+		// Punish small circles
+		if(radiusRatio < 0.25f) {
+			radiusScore *= 1 - radiusRatio;
+		}
+
+		// TODO investigate using time as a factor for score?
+		// double timeScore = 1;
+
+		// Reasonable place value
+		final double multiplier = 1000000;
+		return (varScore * radiusScore) * multiplier;
 	}
-	
-	public float getScore() {
+
+	public void setScore(double score) {
+		this.score = score;
+		l("Score: " + score);
+		this.scoreLabel.setText("Score: " + (int) score);
+	}
+
+	public double getScore() {
 		return score;
 	}
 
@@ -312,6 +346,11 @@ public class DrawScreen extends AbstractScreen {
 		camera.setToOrtho(true, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		camera.update();
 		sr.setProjectionMatrix(camera.combined);
+
+		// Calculate desired circle
+		this.desiredCenter = new Vector2(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
+		this.desiredRadius = Utils.min(Gdx.graphics.getWidth() / 2 * 0.8f,
+				Gdx.graphics.getHeight() / 2 * 0.8f);
 	}
 
 	@Override
