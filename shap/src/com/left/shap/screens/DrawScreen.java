@@ -1,5 +1,6 @@
 package com.left.shap.screens;
 
+import static com.badlogic.gdx.scenes.scene2d.actions.Actions.fadeIn;
 import static com.left.shap.util.Log.l;
 import static com.left.shap.util.Log.pCoords;
 
@@ -8,20 +9,30 @@ import java.util.List;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.Align;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.left.shap.ShapeGame;
 import com.left.shap.ShapeGame.Screens;
+import com.left.shap.services.MusicManager.GridMusic;
+import com.left.shap.services.SoundManager.GridSound;
 import com.left.shap.util.DefaultButtonListener;
+import com.left.shap.util.Res;
 import com.left.shap.util.Utils;
 
 public class DrawScreen extends AbstractScreen {
@@ -31,11 +42,13 @@ public class DrawScreen extends AbstractScreen {
 	// UI elements
 	protected static final float BUTTON_WIDTH = 150f;
 	protected static final float BUTTON_HEIGHT = 30f;
-	protected static final float BUTTON_SPACING = 10f;
+	protected static final float SPACING = 10f;
+	private Texture buttonTexture;
 	private final Stage stage;
+	private Table table;
 	private Label scoreLabel;
-	private TextButton shareButton;
-	private TextButton menuButton;
+	private Label helpLabel;
+	private ImageButton submitButton;
 
 	// Player circle
 	private final float RECORD_DELAY = 0.01f; // seconds
@@ -55,41 +68,71 @@ public class DrawScreen extends AbstractScreen {
 
 	public DrawScreen(ShapeGame game) {
 		super(game);
-		sr = new ShapeRenderer();
-		final Skin skin = getSkin();
+		this.sr = new ShapeRenderer();
+		this.buttonTexture = new Texture(Res.BUTTONS);
 		this.stage = new Stage();
-
+		this.table = new Table();
+		if(ShapeGame.DEVMODE) {
+			table.debug();
+		}
+		initTable();
+		stage.addActor(table);
+		
+		drawn = new ArrayList<Vector2>(1000); // TODO get expected value of # points
+	}
+	
+	private void initTable() {
+		final Skin skin = super.getSkin();
+		
 		scoreLabel = new Label("Score: 0", skin);
-
-		shareButton = new TextButton("Share", skin);
-		shareButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
-		shareButton.addListener(new DefaultButtonListener() {
+		helpLabel = new Label("Try and draw a perfect circle!", skin);
+		ImageButton backButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
+				buttonTexture, 0, 2 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT)));
+		backButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
+		backButton.addListener(new DefaultButtonListener() {
 			@Override
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
-				// TODO share current score
+				game.getDeejay().play(GridSound.CLICK);
+				game.setNextScreen(Screens.MENU);
 			}
 		});
-
-		menuButton = new TextButton("Menu", skin);
-		menuButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
-		menuButton.addListener(new DefaultButtonListener() {
+		ImageButton clearButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
+				buttonTexture, 0, 5 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT)));
+		clearButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
+		clearButton.addListener(new DefaultButtonListener() {
 			@Override
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
-				// TODO goto menu
-				DrawScreen.this.game.setNextScreen(Screens.MENU);
+				game.getDeejay().play(GridSound.CLICK);
+				// TODO clear screen
 			}
 		});
-		stage.addActor(scoreLabel);
-		stage.addActor(shareButton);
-		stage.addActor(menuButton);
-
-		drawn = new ArrayList<Vector2>(1000);
+		submitButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
+				buttonTexture, 0, 6 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT)));
+		submitButton.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
+		submitButton.addListener(new DefaultButtonListener() {
+			@Override
+			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
+				game.getDeejay().play(GridSound.CLICK);
+				// TODO pass data to score screen
+				game.setNextScreen(Screens.MENU);
+			}
+		});
+		
+		table.add(scoreLabel).align(Align.left).pad(SPACING);
+		table.add(helpLabel).align(Align.right).colspan(2).pad(SPACING);
+		table.row();
+		table.add(backButton).align(Align.left).pad(0, SPACING, SPACING, 0);
+		table.add(clearButton).pad(0, 0, SPACING, 0);
+		table.add(submitButton).align(Align.right).pad(0, 0, SPACING, SPACING);
+		table.pack();
 	}
 
 	@Override
 	public void show() {
 		super.show();
 		Gdx.input.setInputProcessor(this.stage);
+		stage.getRoot().getColor().a = 0f;
+		stage.getRoot().addAction(fadeIn(0.25f));
 	}
 
 	@Override
@@ -97,7 +140,10 @@ public class DrawScreen extends AbstractScreen {
 		// Clear screen
 		Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-		SpriteBatch batch = getBatch();
+		SpriteBatch batch = super.getBatch();
+		BitmapFont font = super.getFont();
+		font.setColor(Color.WHITE);
+		//TODO font.draw(batch, "Hello World", 200, 200);
 
 		// Check for input
 		if(Gdx.input.isButtonPressed(Buttons.LEFT) || Gdx.input.isTouched(0)) {
@@ -165,7 +211,8 @@ public class DrawScreen extends AbstractScreen {
 
 		Gdx.gl10.glLineWidth(1);
 		stage.act(delta);
-		stage.draw();
+		//stage.draw();
+		Table.drawDebug(stage);
 	}
 
 	/**
@@ -258,12 +305,9 @@ public class DrawScreen extends AbstractScreen {
 		width *= ShapeGame.getUIScaling();
 		height *= ShapeGame.getUIScaling();
 		stage.setViewport(width, height, false);
-
-		// Shift everything back into the viewport.
-		scoreLabel.setPosition(0, BUTTON_HEIGHT);
-		shareButton.setPosition(0, 0);
-		menuButton.setPosition(width - menuButton.getWidth(), 0);
-
+		
+		table.setBounds(0, 0, width, BUTTON_HEIGHT * 2 + SPACING);
+		table.setPosition(0, 0);
 		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		camera.setToOrtho(true, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		camera.update();
@@ -273,6 +317,7 @@ public class DrawScreen extends AbstractScreen {
 	@Override
 	public void dispose() {
 		super.dispose();
+		buttonTexture.dispose();
 		// may crash, comment out if so.
 		// http://www.badlogicgames.com/forum/viewtopic.php?f=11&t=3624
 		stage.clear();

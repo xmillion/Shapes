@@ -47,7 +47,6 @@ public class MainMenuScreen extends AbstractScreen {
 	protected static final int BUTTON_HEIGHT = 32;
 	protected static final float SPACING = 10f;
 	private Texture buttonTexture;
-
 	protected final Stage stage;
 
 	public static enum MenuState {
@@ -222,6 +221,7 @@ public class MainMenuScreen extends AbstractScreen {
 
 		scoreMenuTable.add(scoreTitle).colspan(3).pad(SPACING).expand();
 		scoreMenuTable.row();
+		// TODO scores list
 		scoreMenuTable.row();
 		scoreMenuTable.add(scoreBackButton).align(Align.left).pad(0, SPACING, SPACING, 0);
 		scoreMenuTable.add(scoreAgainButton).pad(0, 0, SPACING, 0);
@@ -320,5 +320,6 @@ public class MainMenuScreen extends AbstractScreen {
 				}
 			}
 		}
+		buttonTexture.dispose();
 	}
 }
