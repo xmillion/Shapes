@@ -13,7 +13,6 @@ import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -305,6 +304,9 @@ public class DrawScreen extends AbstractScreen {
 			if(actualRadius >= 0) {
 				// Calculate the score
 				setScore(calculateScore(drawn, actualCenter, actualRadius, desiredRadius));
+				this.helpLabel.setText("Keep trying!");
+				// TODO tell user if they hit a high score
+				//this.helpLabel.setText("You got a high score, Submit it!");
 				isCalculated = true;
 			}
 		} else if(!isCalculated) {

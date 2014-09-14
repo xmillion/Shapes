@@ -23,13 +23,17 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Scaling;
 import com.left.shap.ShapeGame;
 import com.left.shap.ShapeGame.Screens;
 import com.left.shap.model.ResetPositionAction;
+import com.left.shap.model.Score;
 import com.left.shap.services.MusicManager.GridMusic;
 import com.left.shap.services.SoundManager.GridSound;
 import com.left.shap.util.DefaultButtonListener;
@@ -52,10 +56,12 @@ public class MainMenuScreen extends AbstractScreen {
 		MAINMENU, MAINSCORES, DRAWSCORES
 	}
 	private MenuState currentState;
+	private double newScore;
 	private Table mainMenuTable;
 	private Table scoreMenuTable;
 	private ImageButton scoreBackButton;
 	private ImageButton scoreAgainButton;
+	private ImageButton scoreResetButton;
 
 	// Falling Shaps
 	private Texture[] shapAssets;
@@ -92,7 +98,7 @@ public class MainMenuScreen extends AbstractScreen {
 		// determine state
 		Map<String, Object> globals = game.getGlobals();
 		if(globals.containsKey("newscore")) {
-			double score = (Double) globals.remove("newscore");
+			this.newScore = (Double) globals.remove("newscore");
 			setState(MenuState.DRAWSCORES);
 		} else {
 			setState(MenuState.MAINMENU);
@@ -190,10 +196,6 @@ public class MainMenuScreen extends AbstractScreen {
 	private void loadScoreMenu() {
 		Image scoreTitle = new Image(new Texture(Res.SCORE_LABEL));
 
-		// TODO replace with the score list
-		Image scoreList = new Image(new Texture(Res.TITLE_PICTURE));
-		double[] scores = game.getPrefs().getScores();
-
 		scoreBackButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
 				buttonTexture, 0, 2 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT)));
 		scoreBackButton.addListener(new DefaultButtonListener() {
@@ -218,9 +220,9 @@ public class MainMenuScreen extends AbstractScreen {
 			}
 		});
 
-		ImageButton resetButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
+		scoreResetButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(
 				buttonTexture, 0, 3 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT)));
-		resetButton.addListener(new DefaultButtonListener() {
+		scoreResetButton.addListener(new DefaultButtonListener() {
 			@Override
 			public void pressed(InputEvent event, float x, float y, int pointer, int button) {
 				game.getDeejay().play(GridSound.CLICK);
@@ -228,13 +230,52 @@ public class MainMenuScreen extends AbstractScreen {
 			}
 		});
 
+		Table scoreList = new Table();
+		List<Score> scores = game.getPrefs().getScores();
+		final Skin skin = super.getSkin();
+		if (scores.size() == 0) {
+			//insert newScore
+			TextField newNameField = new TextField("", skin);
+			// TODO bug: newScore isn't set until after this method call.
+			// Restructure this menuTable and scoreTable stuff, perhaps into separate classes.
+			// a menuTable class for the menu, and scoreTable class for scores?
+			// Either way, have the ability to add a score in constructor.
+			Label newScoreLabel = new Label("" + (long)newScore, skin);
+			scoreList.add(newNameField).align(Align.left).padBottom(SPACING).fillX();
+			scoreList.add(newScoreLabel).align(Align.right).padBottom(SPACING);
+			scoreList.row();
+		} else {
+			for(Score score : scores) {
+				if (currentState == MenuState.DRAWSCORES && newScore > score.getScore()) {
+					//insert newScore
+					TextField newNameField = new TextField("", skin);
+					Label newScoreLabel = new Label("" + (long)newScore, skin);
+					scoreList.add(newNameField).align(Align.left).padBottom(SPACING).fillX();
+					scoreList.add(newScoreLabel).align(Align.right).padBottom(SPACING);
+					scoreList.row();
+				}
+				//insert score
+				Label nameLabel = new Label(score.getName(), skin);
+				// display score without decimals
+				Label scoreLabel = new Label("" + (long)score.getScore(), skin);
+				scoreList.add(nameLabel).align(Align.left).padBottom(SPACING).fillX();
+				scoreList.add(scoreLabel).align(Align.right).padBottom(SPACING);
+				scoreList.row();
+			}
+		}
+		
+		//Image temp = new Image(new Texture(Res.TITLE_PICTURE));
+		//scoreList.add(temp);
+		
+		
+		
 		scoreMenuTable.add(scoreTitle).colspan(3).pad(SPACING);
 		scoreMenuTable.row();
 		scoreMenuTable.add(scoreList).expand().uniform().colspan(3);
 		scoreMenuTable.row();
 		scoreMenuTable.add(scoreBackButton).align(Align.left).pad(0, SPACING, SPACING, 0);
 		scoreMenuTable.add(scoreAgainButton).pad(0, 0, SPACING, 0);
-		scoreMenuTable.add(resetButton).align(Align.right).pad(0, 0, SPACING, SPACING);
+		scoreMenuTable.add(scoreResetButton).align(Align.right).pad(0, 0, SPACING, SPACING);
 		scoreMenuTable.pack();
 	}
 
@@ -244,9 +285,6 @@ public class MainMenuScreen extends AbstractScreen {
 	public void show() {
 		super.show();
 		Gdx.input.setInputProcessor(stage);
-
-		setState(currentState);
-
 		game.getJukebox().play(GridMusic.MENU);
 		stage.getRoot().getColor().a = 0f;
 		stage.getRoot().addAction(fadeIn(0.25f));
